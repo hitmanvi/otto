@@ -50,7 +50,6 @@ class PartnerSpider(scrapy.Spider):
             raise scrapy.exceptions.CloseSpider(f'Found copyright text for partner {partner_id}')
             
         if response.status == 404:
-            self.logger.info(f'Got 404 for partner {partner_id} - marking as completed')
             self._mark_completed(partner_id)
             return
             
@@ -63,3 +62,5 @@ class PartnerSpider(scrapy.Spider):
             
             # Mark as completed
             self._mark_completed(partner_id)
+    
+    
