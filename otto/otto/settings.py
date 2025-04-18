@@ -98,3 +98,5 @@ RETRY_TIMES = 3
 
 # 启用重试中间件
 RETRY_ENABLED = True
+
+HTTP_ALLOWED_CODES = [200, 404]
