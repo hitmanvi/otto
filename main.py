@@ -58,6 +58,9 @@ def fetch_walmart_seller_data(seller_id):
             "address": address,
             "phone": phone
         }
+
+        if seller_data["name"] == "Not found":
+            return None
         
         return seller_data
     except requests.exceptions.RequestException as e:
@@ -66,6 +69,7 @@ def fetch_walmart_seller_data(seller_id):
 
 def process_seller(seller_id, data_dir):
     seller_data = fetch_walmart_seller_data(seller_id)
+    
     if seller_data:
         file_path = os.path.join(data_dir, f"{seller_id}.json")
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -77,12 +81,10 @@ def main():
     data_dir = "data/walmart"
     Path(data_dir).mkdir(parents=True, exist_ok=True)
     
-    for seller_id in range(1, 19093):
+    for seller_id in range(5000, 19093):
         # Check if file already exists
-        file_path = os.path.join(data_dir, f"{seller_id}.json")
-        if not os.path.exists(file_path):
-            process_seller(str(seller_id), data_dir)
-            time.sleep(0.2)  # Wait 0.2 seconds between requests
+        process_seller(str(seller_id), data_dir)
+        time.sleep(0.2)  # Wait 0.2 seconds between requests
 
 if __name__ == "__main__":
     main()
