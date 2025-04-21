@@ -27,6 +27,7 @@ def fetch_walmart_seller_data(seller_id):
     
     try:
         response = requests.get(url, headers=headers)
+        print(response.text)
         response.raise_for_status()
         
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -81,9 +82,10 @@ def main():
     data_dir = "data/walmart"
     Path(data_dir).mkdir(parents=True, exist_ok=True)
     
-    for seller_id in range(5000, 19093):
+    for seller_id in range(101100001, 101110000):
         # Check if file already exists
         process_seller(str(seller_id), data_dir)
+        print(f"Processed seller {seller_id}")
         time.sleep(0.2)  # Wait 0.2 seconds between requests
 
 if __name__ == "__main__":
