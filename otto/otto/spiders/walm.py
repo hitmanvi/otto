@@ -26,7 +26,7 @@ class WalmSpider(scrapy.Spider):
     
     def start_requests(self):
         # 生成起始URL，跳过已爬取的卖家
-        for seller_id in range(5001, 20000):
+        for seller_id in range(5001, 10000):
             if str(seller_id) not in self.crawled_sellers:
                 url = f"https://www.walmart.com/global/seller/{seller_id}/cp/shopall"
                 yield scrapy.Request(url, callback=self.parse, meta={'seller_id': seller_id})
