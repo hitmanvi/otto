@@ -38,3 +38,10 @@ data/
 .DS_Store
 
 otto/otto/spiders/walmart_sellers.json
+otto/crawled_sellers.txt
+otto/walmart_sellers.json
+otto/seller_data/
+**/nohup.out
+otto/walmart_sellers_merged.json
+otto/merge_json.py
+otto/walmart_sellers.json
