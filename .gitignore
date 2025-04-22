@@ -36,3 +36,5 @@ company_data.json
 data/
 
 .DS_Store
+
+otto/otto/spiders/walmart_sellers.json
