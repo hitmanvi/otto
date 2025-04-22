@@ -4,7 +4,7 @@ import scrapy
 class WalmSpider(scrapy.Spider):
     name = "walm"
     allowed_domains = ["www.walmart.com"]
-    start_urls = ["https://www.walmart.com/ip/BCZHQQ-First-Aid-Box-Organizer-Empty-8-5-Inch-Blue-Vintage-First-Aid-Kit-Tin-Metal-Medical-Box-First-Aid-Storage-Box-Container-Bins-Dividers-Removabl/5609670746?athcpid=5609670746&athpgid=DiscoveryPageSeller&athcgid=null&athznid=mtsi&athieid=v0&athstid=CS020&athguid=tAySOfs_AuNEWnfIKQ6y1-XgCTikUDWmpzfd&athancid=null&athena=true&selectedSellerId=101538196"]
+    start_urls = [f"https://www.walmart.com/global/seller/{i}" for i in range(5001, 20000)]
 
     def parse(self, response):
         # Extract all product links from the page
@@ -21,13 +21,45 @@ class WalmSpider(scrapy.Spider):
             yield scrapy.Request(link, callback=self.parse_seller)
     
     def parse_seller(self, response):
+        if 'Robot or human?' in response.text:
+            yield scrapy.Request(response.url, callback=self.parse_seller)
+            return
         # Extract seller details
-        name = response.css('[data-testid="seller-name"]::text').get()
-        # Get all text from elements with class 'di'
-        info_texts = response.css('.di::text').getall()
+        seller_name = response.css('[data-testid="seller-name"]::text').get()
+        name = seller_name.strip() if seller_name else "Not found"
+        
+        # Extract address
+        address = "Not found"
+        di_elements = response.css('.di')
+        for element in di_elements:
+            mb3 = element.css('.mb3::text').get()
+            if mb3:
+                address = mb3.strip()
+                break
+        
+        # Extract phone
+        phone = "Not found"
+        for element in di_elements:
+            phone_span = element.css('.ld-Phone + span::text').get()
+            if phone_span and phone_span.strip():
+                phone = phone_span.strip()
+                break
+        
+        # Extract rating using regular expression
+        rating = "Not found"
+        rating_pattern = r'(\d+(\.\d+)?) out of \d+'
+        rating_text = response.text
+        import re
+        rating_match = re.search(rating_pattern, rating_text)
+        if rating_match:
+            rating = rating_match.group(1)
+        
+        seller_id = response.url.split('/')[-1]
         
         yield {
-            'url': response.url,
+            'seller_id': seller_id,
             'name': name,
-            'info_texts': info_texts
+            'address': address,
+            'phone': phone,
+            'rating': rating
         }
