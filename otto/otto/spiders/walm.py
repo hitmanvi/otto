@@ -1,5 +1,6 @@
 import scrapy
 import json
+import csv
 from pathlib import Path
 import re
 import os
@@ -23,10 +24,35 @@ class WalmSpider(scrapy.Spider):
         # 读取已爬取的卖家ID
         with open(self.crawled_file, 'r') as f:
             self.crawled_sellers = set(f.read().splitlines())
+            
+        # 创建CSV文件并写入表头
+        # 根据 start id 和 end id 创建CSV文件名
+        start_id = getattr(self, 'start_id', 10000)
+        end_id = getattr(self, 'end_id', 20000)
+        self.csv_file = Path(f'seller_data/sellers_{start_id}_to_{end_id}.csv')
+        csv_exists = self.csv_file.exists()
+        
+        self.csv_fieldnames = [
+            'seller_id', 'name', 'address', 'phone', 
+            'rating', 'items_count', 'ratings_count', 'reviews_count'
+        ]
+        
+        if not csv_exists:
+            with open(self.csv_file, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+                writer.writeheader()
     
     def start_requests(self):
         # 生成起始URL，跳过已爬取的卖家
-        for seller_id in range(10000, 20000):
+        # 从配置中获取爬取范围
+        start_id = getattr(self, 'start_id', 10000)
+        end_id = getattr(self, 'end_id', 20000)
+        
+        # 确保是整数类型
+        start_id = int(start_id)
+        end_id = int(end_id)
+        
+        for seller_id in range(start_id, end_id):
             if str(seller_id) not in self.crawled_sellers:
                 url = f"https://www.walmart.com/global/seller/{seller_id}/cp/shopall"
                 yield scrapy.Request(url, callback=self.parse, meta={'seller_id': seller_id})
@@ -98,10 +124,15 @@ class WalmSpider(scrapy.Spider):
             'reviews_count': reviews_count
         }
         
-        # 保存到单独的文件
-        output_file = self.data_dir / f'seller_{seller_id}.json'
-        with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
+        # 直接写入CSV文件
+        with open(self.csv_file, 'a', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+            writer.writerow(result)
+        
+        # # 保存到单独的文件
+        # output_file = self.data_dir / f'seller_{seller_id}.json'
+        # with open(output_file, 'w', encoding='utf-8') as f:
+        #     json.dump(result, f, ensure_ascii=False, indent=2)
         
         # 记录已爬取的卖家ID
         with open(self.crawled_file, 'a') as f:
