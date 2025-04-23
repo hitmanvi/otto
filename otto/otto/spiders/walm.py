@@ -129,8 +129,9 @@ class WalmSpider(scrapy.Spider):
         
         # 直接写入CSV文件
         with open(self.csv_file, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
-            writer.writerow(result)
+            if result['name'] != "Not found":   
+                writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+                writer.writerow(result)
         
         # # 保存到单独的文件
         # output_file = self.data_dir / f'seller_{seller_id}.json'
