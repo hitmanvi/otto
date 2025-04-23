@@ -107,7 +107,12 @@ class WalmSpider(scrapy.Spider):
         # Extract items count
         items_count = response.css('.f6.f5-m.fw3.ml1.mt1-xl.gray.normal.self-center::text').get()
         if items_count:
-            items_count = items_count.strip()
+            # Extract only the numeric part from items_count
+            numeric_pattern = r'([\d,]+)'
+            numeric_match = re.search(numeric_pattern, items_count)
+            if numeric_match:
+                items_count = numeric_match.group(1)
+                items_count = items_count.replace(',', '')
         else:
             items_count = "0"
         
