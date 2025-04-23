@@ -1,20 +1,41 @@
 #!/bin/bash
-# Loop through the range from 101020000 to 101100000 with step 10000
-for ((start_id=101020000; start_id<101100000; start_id+=10000)); do
-    end_id=$((start_id+10000))
-    echo "Starting crawl from $start_id to $end_id"
-    
-    scrapy crawl walm -a start_id=$start_id -a end_id=$end_id
-    exit_code=$?
-    
-    if [ $exit_code -eq 0 ]; then
-        echo "Spider completed successfully for range $start_id to $end_id"
-    else
-        echo "Spider exited with error code $exit_code for range $start_id to $end_id, waiting 5 minutes..."
-        sleep 300
-        # Retry the current range
-        start_id=$((start_id-10000))
+
+# 获取参数
+START_ID=${1:-101020000}
+END_ID=${2:-101030000}
+STEP=10000
+
+current_start=$START_ID
+current_end=$((current_start + STEP))
+
+while [ $current_start -lt $END_ID ]; do
+    # 确保不超过最大值
+    if [ $current_end -gt $END_ID ]; then
+        current_end=$END_ID
     fi
+    
+    echo "Starting crawl for range $current_start to $current_end"
+    
+    while true; do
+        # 运行爬虫
+        scrapy crawl walm -a start_id=$current_start -a end_id=$current_end
+        
+        # 检查完成标记文件
+        COMPLETION_FILE="/var/www/html/crawl_data/walmart/completed_${current_start}_to_${current_end}.txt"
+        
+        if [ -f "$COMPLETION_FILE" ]; then
+            echo "Crawling completed for range $current_start to $current_end"
+            echo "Completion time: $(cat $COMPLETION_FILE)"
+            break
+        fi
+        
+        echo "Spider exited, waiting 5 minutes..."
+        sleep 300
+    done
+    
+    # 移动到下一个范围
+    current_start=$current_end
+    current_end=$((current_start + STEP))
 done
 
-echo "All crawling tasks completed"
+echo "All ranges completed from $START_ID to $END_ID"

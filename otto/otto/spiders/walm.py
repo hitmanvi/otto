@@ -6,6 +6,8 @@ import re
 import os
 from scrapy.exceptions import CloseSpider
 import shutil
+from datetime import datetime
+
 class WalmSpider(scrapy.Spider):
     name = "walm"
     allowed_domains = ["www.walmart.com"]
@@ -66,9 +68,17 @@ class WalmSpider(scrapy.Spider):
             target_dir = Path("/var/www/html/crawl_data/walmart")
             target_dir.mkdir(exist_ok=True, parents=True)
             
+            # 创建完成标记文件
+            completion_marker = Path(f"completed_{start_id}_to_{end_id}.txt")
+            with open(completion_marker, 'w') as f:
+                f.write(f"Crawling completed for sellers {start_id} to {end_id} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            
+            # 将完成标记文件也移动到目标目录
+            if completion_marker.exists():
+                shutil.move(str(completion_marker), str(target_dir / completion_marker.name))
+            
             if self.csv_file.exists():
                 shutil.move(str(self.csv_file), str(target_dir / self.csv_file.name))
-                self.logger.info(f"Moved {self.csv_file} to {target_dir}")
     
     def parse(self, response):
         seller_id = response.meta['seller_id']
