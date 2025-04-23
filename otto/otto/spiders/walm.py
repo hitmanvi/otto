@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 import os
 from scrapy.exceptions import CloseSpider
-
+import shutil
 class WalmSpider(scrapy.Spider):
     name = "walm"
     allowed_domains = ["www.walmart.com"]
@@ -52,10 +52,23 @@ class WalmSpider(scrapy.Spider):
         start_id = int(start_id)
         end_id = int(end_id)
         
+        # 检查是否有未爬取的卖家
+        remaining_sellers = 0
         for seller_id in range(start_id, end_id):
             if str(seller_id) not in self.crawled_sellers:
+                remaining_sellers += 1
                 url = f"https://www.walmart.com/global/seller/{seller_id}/cp/shopall"
                 yield scrapy.Request(url, callback=self.parse, meta={'seller_id': seller_id})
+        
+        # 如果全部都爬完了，则把对应的csv文件移动到指定目录
+        if remaining_sellers == 0:
+            self.logger.info(f"All sellers from {start_id} to {end_id} have been crawled. Moving CSV file.")
+            target_dir = Path("/var/www/html/crawl_data/walmart")
+            target_dir.mkdir(exist_ok=True, parents=True)
+            
+            if self.csv_file.exists():
+                shutil.move(str(self.csv_file), str(target_dir / self.csv_file.name))
+                self.logger.info(f"Moved {self.csv_file} to {target_dir}")
     
     def parse(self, response):
         seller_id = response.meta['seller_id']
