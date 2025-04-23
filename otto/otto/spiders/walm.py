@@ -105,13 +105,11 @@ class WalmSpider(scrapy.Spider):
             reviews_count = reviews_count.replace(',', '')
         
         # Extract items count
-        items_count = "0"
-        items_count_element = response.css('h2[style="color:undefined"]::text').get()
-        if items_count_element:
-            items_count = items_count_element.strip()
-            items_count = ''.join(c for c in items_count if c.isdigit() or c == '.')
-            if not items_count:
-                items_count = "0"
+        items_count = response.css('.f6.f5-m.fw3.ml1.mt1-xl.gray.normal.self-center::text').get()
+        if items_count:
+            items_count = items_count.strip()
+        else:
+            items_count = "0"
         
         result = {
             'seller_id': str(seller_id),
