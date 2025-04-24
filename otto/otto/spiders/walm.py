@@ -31,7 +31,10 @@ class WalmSpider(scrapy.Spider):
         # 根据 start id 和 end id 创建CSV文件名
         start_id = getattr(self, 'start_id', 10000)
         end_id = getattr(self, 'end_id', 20000)
-        self.csv_file = Path(f'seller_data/sellers_{start_id}_to_{end_id}.csv')
+        # 格式化成9位数字，不足以0前导
+        formatted_start_id = f"{int(start_id):09d}"
+        formatted_end_id = f"{int(end_id):09d}"
+        self.csv_file = Path(f'seller_data/sellers_{formatted_start_id}_to_{formatted_end_id}.csv')
         csv_exists = self.csv_file.exists()
         
         self.csv_fieldnames = [
